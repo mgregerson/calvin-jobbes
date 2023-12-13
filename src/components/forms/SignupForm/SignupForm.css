@@ -1,0 +1,20 @@
+label {
+    color: white;
+  }
+  
+  .SignupForm-Message {
+    padding-top: 20px;
+    padding-bottom: 10px;
+    text-shadow: 2px 2px 5px #34302f;
+    font-size: 30px;
+  }
+  
+  .SignupForm {
+    flex-direction: row;
+    justify-content: center;
+  }
+  
+  .SignupForm-button.d-grid {
+    padding-top: 15px;
+  }
+  

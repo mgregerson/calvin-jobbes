@@ -1,7 +1,7 @@
 import axios from "axios";
 import { LoginData, RegisterData } from "../types/types";
 
-const BASE_URL = process.env.REACT_APP_BASE_URL || "http://localhost:3001";
+
 
 /** API Class.
  *
@@ -21,38 +21,22 @@ class CalvinAndJobbesApi {
     "G1pbiIsImlzQWRtaW4iOnRydWUsImlhdCI6MTY4NzQ0NTk2OX0.oileW5hKLpdiIfc-UfBPP23W_Oi" +
     "XwE40PW-NNcJTUnk";
 
-  static async request(endpoint: any, data = {}, method = "get") {
-    console.debug("API Call:", endpoint, data, method, this.token);
-
-    const url = `${BASE_URL}/${endpoint}`;
-    const headers = { Authorization: `Bearer ${CalvinAndJobbesApi.token}` };
-    const params = method === "get" ? data : {};
-
-    try {
-      return (await axios({ url, method, data, params, headers })).data;
-    } catch (err: any) {
-      console.error("API Error:", err.response);
-      let message = err.response.data.error.message;
-      throw Array.isArray(message) ? message : [message];
-    }
-  }
-
+  static BASE_URL = import.meta.env.VITE_REACT_APP_BASE_URL;
   // Individual API routes
-
+  
   // Auth
 
   /** POST Register new user function */
 
-  static async registerUser(inputData: RegisterData ) {
+  static async registerUser(inputData: RegisterData) {
     const { username, password, firstName, lastName, email } = inputData;
-
-    let res = await this.request(
-      "auth/register",
+    const response = await axios.post(
+      `${this.BASE_URL}/auth/register`,
       { username, password, firstName, lastName, email },
-      "post"
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
     );
 
-    this.token = res.token;
+    this.token = response.data.token;
     return this.token;
   }
 
@@ -60,8 +44,13 @@ class CalvinAndJobbesApi {
 
   static async loginUser(inputData: LoginData) {
     const { username, password } = inputData;
-    let res = await this.request(`auth/token`, { username, password }, "post");
-    this.token = res.token;
+    const response = await axios.post(
+      `${this.BASE_URL}/auth/token`,
+      { username, password },
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
+    );
+
+    this.token = response.data.token;
     return this.token;
   }
 
@@ -70,47 +59,72 @@ class CalvinAndJobbesApi {
   /** GET User by username */
 
   static async getUser(username: string) {
-    let res = await this.request(`users/${username}`);
-    return res.user;
+    try {
+      console.log('calling get user');
+      const response = await axios.get(`${this.BASE_URL}/users/${username}`, {
+        headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+      });
+  
+      console.log('res=', response.data);
+      return response.data.user;
+    } catch (error) {
+      console.error('Error in getUser:', error);
+  
+      // You may want to throw the error or handle it appropriately based on your application's needs.
+      throw error;
+    }
   }
 
   /** PATCH Edit user */
-    // TODO: Update type of updateData
+  // TODO: Update type of updateData
   static async editUser(username: string, updateData: any) {
-    let res = await this.request(`users/${username}`, updateData, "patch");
-    return res.user;
+    const response = await axios.patch(
+      `${this.BASE_URL}/users/${username}`,
+      updateData,
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
+    );
+    return response.data.user;
   }
 
   /** POST Apply to Job */
 
   static async applyToJob(username: string, id: string) {
-    let res = await this.request(`users/${username}/jobs/${id}`, {}, "post");
-    return res.applied;
+    const response = await axios.post(
+      `${this.BASE_URL}/users/${username}/jobs/${id}`,
+      {},
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
+    );
+    return response.data.applied;
   }
 
   /** POST Remove Application to Job */
 
   static async removeApplication(username: string, id: string) {
-    let res = await this.request(
-      `users/${username}/jobs/${id}/remove`,
+    const response = await axios.post(
+      `${this.BASE_URL}/users/${username}/jobs/${id}/remove`,
       {},
-      "post"
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
     );
-    return res.unapplied;
+    return response.data.unapplied;
   }
 
   /** GET Jobs use has applied to */
 
   static async getAppliedJobs(username: string) {
-    let res = await this.request(`users/${username}/jobs`);
-    return res.jobs;
+    const response = await axios.get(`${this.BASE_URL}/users/${username}/jobs`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.jobs;
   }
 
   // APPLICATIONS
 
   static async getJobApplicationDetails(username: string) {
-    let res = await this.request(`users/${username}/applications`);
-    return res.jobs;
+    const response = await axios.get(
+      `${this.BASE_URL}/users/${username}/applications`,
+      { headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` } }
+    );
+    return response.data.jobs;
   }
 
   // COMPANIES
@@ -118,43 +132,56 @@ class CalvinAndJobbesApi {
   /** Get details on a company by handle. */
 
   static async getCompany(handle: string) {
-    let res = await this.request(`companies/${handle}`);
-    return res.company;
+    const response = await axios.get(`${this.BASE_URL}/companies/${handle}`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.company;
   }
 
   /** Get details on all companies */
 
   static async getCompanies() {
-    let res = await this.request("companies");
-    return res.companies;
+    const response = await axios.get(`${this.BASE_URL}/companies`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+   
+    return response.data.companies;
   }
 
   /** Search for company by title */
 
   static async searchCompaniesByHandle(term: string) {
-    let res = await this.request(`companies?nameLike=${term}`);
-    return res.companies;
+    const response = await axios.get(`${this.BASE_URL}/companies?nameLike=${term}`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.companies;
   }
 
   // JOBS
 
   /** Get job details by id */
   static async getJob(id: string) {
-    let res = await this.request(`jobs/${id}`);
-    return res.job;
+    const response = await axios.get(`${this.BASE_URL}/jobs/${id}`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.job;
   }
 
   /** Get all jobs */
   static async getJobs() {
-    let res = await this.request("jobs");
-    return res.jobs;
+    const response = await axios.get(`${this.BASE_URL}/jobs`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.jobs;
   }
 
   /** Search for jobs by title */
 
   static async searchJobsByTitle(title: string) {
-    let res = await this.request(`jobs?title=${title}`);
-    return res.jobs;
+    const response = await axios.get(`${this.BASE_URL}/jobs?title=${title}`, {
+      headers: { Authorization: `Bearer ${CalvinAndJobbesApi.token}` },
+    });
+    return response.data.jobs;
   }
 }
 
